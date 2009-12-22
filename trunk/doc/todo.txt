@@ -1,0 +1,360 @@
+晚 21点左右开始 ： 站桩 半小时 静坐 半小时
+中午饭后1小时开始： 站桩 半小时
+ 早 7-8点：静坐半小时 动功 易筋经 站桩半小时
+
+2007-1-6
++ 移植到ASP,Net
+  ASP.Net的对象是否能Cache? 可！
+
+2006-9-6
+!+ 建立模板管理类库: MeCMS/TemplateMgr.lib.asp
+Class TMeLayoutTemplate
+  P
+  Public Function OpenFile(ByRef aTemplateFileName)
+  ' Load the sub-templates if any
+  Public Function Prepare()
+End Class
+
+版式模板的作用：
+  1、版式
+  2、内容替换：
+     通用版式模板：标题，正文内容，作者，发布时间
+     基于数据表的内容替换，替换过程：
+
+是否需要建立MetaDBTable,用来维护数据表以及字段?
+内容模型：
+cms_meta_tables:
+  tbl_id:
+  tbl_name:
+  tbl_caption:
+  tbl_type:
+  tbl_subtype:
+  tbl_description:
+cms_meta_fields:
+  tbl_id:
+  fld_name:
+  fld_caption: 
+  fld_type: 选择字段的类型，系统提供字符串、数值、文本、其他结点内容等6种类型。
+   “其它结点内容”这种字段类型是用来关联其它结点的自定义相关文章的。比如，在一篇文章里，
+   需要指定其它结点中的一些文章做为关联阅读，就可以用这个功能了，定义一个字段为“其它结点内容”
+   这种类型，然后在编辑文章录入这个字段时，会有一个自定义文章选择器出现供你选择其它结点的文章，
+   选择好保存后这个字段的值实际会保存一串选中的文章的IndexID值，之后在模版里就用文章调用标签CMS_CONTENT
+   来调用这个字段值得到文章列表。例如：比如一篇文章里，有个推荐阅读的书籍的列表，同一个表中的其他
+   记录，可将RecomandedBook字段设为“其它结点内容”，然后模版里这样调用：
+
+<!--Macro:MeContent.List("[$RecomandedBook]", "Obj"):Begin-->
+  <ul>
+   <LOOP> <!--如果没有loop那么所有的都参与循环--> 
+    <li><a href="[$Obj.URL]">[$Obj.Title]</a></li>
+   </LOOP>
+  </ul>
+<!--Macro:MeContent.List("[$RecomandedBook]"):End-->
+
+<ul>
+<!--Macro:MeContent.List("[$RecomandedBook]", "Obj"):Begin-->
+  <li><a href="[$Obj.URL]">[$Obj.Title]</a></li>
+<!--Macro:MeContent.List:End-->
+</ul>
+
+返回的列表版式还可以放在模板文件中：
+<!--Macro:MeContent.List("RecomandedBook", "Obj", "TheTemplateFileName")-->
+
+2006-8-25
+~ Marco 就是ASP 自定义函数，以函数名称Macro打头。
+  /SYS/CODE/LIB/MeCMS/MACRO/
+  标准宏在 MeCMS.Macro 库中
+  其它宏库放在 MeCMS.Macro.Others 下面。
+ <!--Macro:[LibName.]MacroName[(无参数可以不要括号)]--> 或
+ <!--Macro:MacroName[()][:Begin]--> 如果有:Begin那么必然有：
+ <!--Macro:MacroName[(参数可以省略)]:End-->
+regExpr:
+  "\<\!\-\-Macro\:(.*?)(\:Begin|\:End|)\-\-\>"
+注意：这样会可能会出现宏名为空的情况。
+
+  对于宏是否放宽限制？让所有函数都可以使用？这样函数名称就不用以Macro打头。然后设置函数权限，只有明确设置了权限放可执行。
+  回答：不，但是根据这个要求，我决定增加宏函数执行权限：无，标准(只有以Macro打头的函数才能执行)，Super（执行任意函数）
+
+~ 模板 /Sys/Cfg/templates/ 用Content 来装模板也可以放在文件夹中读取，模板参数则可以另外建立一个数据表来处理。
+算了，模板不需要参数，带参数可以通过宏来调用模板的形式实现。
+<!--Template:[CatName.]TemplateName-->
+如果省略CatName那么默认为当前模板的CatName.
+
+这里的模板是指版式模板。
+
+!+ 建立模板管理类库: MeCMS/TemplateMgr.lib.asp
+
+版式模板是用来显示前台时所看到的网页的界面布局形式，如分栏、表格布局、图片和文字要显示的位置等样式，
+有时也称为版面设计、版面划分或版面布局。版式模板包括网站通用模板和各频道的首页、栏目页、内容页等页面的模板。
+
+样式模板可控制整个网站在前台显示时看到的的字体、风格、图片等样式，通常是用CSS 网页样式语句来进行设计和控制整个网站的风格样式。
+
+模板方案是指对整个网站的版式和风格进行预设的方案，包含网站的风格模板与版式模板。
+
+网站版式模板是用来显示前台时所看到的网页的界面布局形式，如分栏、表格布局、图片和
+文字要显示的位置等样式，有时也称为版面设计、版面划分或版面布局。版式模板包括网站通用
+模板和各频道的首页、栏目页、内容页等页面的模板。
+
+2006-8-24
+~ Macro 定义： 用在模板中，替换建立新的文字，本质上是一个替换函数。分为简单宏和复杂宏。
+  //复杂宏（参考TSYS2的Slice）：自定义查询sql，可视化界面设计，支持循环操作。废弃，和界面有关，放入模板。
+ <!--Macro:[LibName.]MacroName[(无参数可以不要括号)]-->
+
+ Template 模板定义: 支持简单循环语句，模板嵌套，模板参数（这样可以改变一些栏目名称或自由切换数据表，只要字段名相同）。
+<!--Template:TemplateName[(无参数可以不要括号)]-->
+
+ 我觉得html 的结构布局可以放到模板 html 中，而背景图片定义则放到css中。
+
+ 约定：如果希望将某段文字用指定的宏或模板替换，那么可以使用：
+ <!--Macro:MacroName[()][:Begin]--> 如果有:Begin那么必然有：
+ <!--Macro:MacroName[(参数可以省略)]:End-->
+
+regExpr:
+  "\<\!\-\-Macro\:(.*?)(\:Begin|\:End|)\-\-\>"
+注意：这样会可能会出现宏名为空的情况。
+
+2006-8-3
++ MeCMS/ActionMgr 编写完毕，但是没有测试！
+
+2006-7-30
+* 拆分 cms_actions table，将参数独立:
+  + cms_action_params
+    cat_id: PK : Catid = "#" 表示默认（所有无目录的）
+    act_id: PK
+    parm_id: PK
+    parm_type:
+    parm_order: 顺序号
+    parm_name: the english name for explain.
+
+2006-7-23
++ 现在缓存对象支持属性为对象（该对象必须是符合MetaObject要求的）的保存了
++ ActionMgr lib
+
+2006-7-21
+需要重新定义cache中对象的格式。
+存放的数组，0 为 className：
+其它则为属性值。
+
+- cms_category_revisions table
+!+ cms_content_specials table
+    spl_id
+    spl_parentid
+
+2006-7-20
+* GetMetaObject
++ lang.object.lib 增强VBS的语言特性，MetaObject
+决定动作的界面和动作分开，各是各的！Login(登录界面) and LoginRequest(客户端发来的登录请求【传输的是登录数据】)
+算了还是增加一个URL参数比较好：t(ype) 动作类型
+t=r : r表示request
+[t=v] : v表示view 界面默认值
+
+2006-7-19
++ 现在Lib支持装入js函数库了。
++ io.json 函数库
+
+2006-7-18
+问题还是没有想好怎么样将object变成界面。
+
+想到一个 Idear 让VBScript 类实现继承:不过这样self只是其父类的！！
+  TMeObject
+    Private Self
+    Public Function InheritedFrom(ByRef pParentClassName)
+      Set InheritedFrom = Eval("New " + pParentClassName)
+    End Function
+    Private Sub Class_Initialize()
+      Set Self = InheritedFrom("TMyParent")
+    End Sub
+
+    Private Sub Class_Terminate()
+      Set Self = Nothing
+    End Sub
+
++ 需要编写一个东西将对象自动转换成客户端Ajax上的对象(jscript)。io/json.lib.asp
+发现以前的json 对象中的属性名称需要用双引号扩起(见twd-example-jsonAsp)，现在不用了.
+eg: {"name": 1234}
+
+参考 dojo/tests/io/:
+function doit() {
+	var kw = {
+		url: "data-json.js",
+		mimetype: "text/json",
+		load: function(type, json, http) {
+			dojo.debug("http:", http);
+			dojo.debug("response:", http.responseText);
+			dojo.debug("state:", http.readyState);
+			dojo.debug("--------");
+			dojo.debug("json:", json);
+			dojo.debug("- Key/value pairs -------");
+			for(var key in json) {
+				dojo.debug(key, ":", json[key]);
+			}
+		}
+	};
+	dojo.io.bind(kw);
+}
+
+  In "IO/json.lib.asp"
+  ' for Ajax convert object to json object
+  Public Function ObjectToJsObject(ByRef pObject)
+
+  然后如何由jsObject产生界面？
+  还有一个问题，现在我的对象虽然有属性，但是没有属性类型，不过可以通过VarType确定！那意味着该对象必须要有数据。
+  如果是空对象，那么必须在对象初始化的时候同时初始化属性！
+
+! 需要决定界面以及与客户端的通讯如何弄。
+这才发现 htmli 需要在服务器端做 XSLT 最后生成供客户端浏览的 Html. 于是决定选择dojo. YUI也不错哟。
+
+!  动作需要注册，  一个动作应该有两个过程，一个用来显示用户界面(View)，一个用来处理反馈信息。
+  + cms_actions
+    act_id: the action id name for the url parameter: a="act_id" , the "#" is reserved for default action.
+    cat_id: if cat_id = "#" then the action is global that means can be no cat!
+    act_Name: the english name for explain.
+    act_type: 动作还是辅助参数，辅助参数就没有下面的属性！只是为了将名字注册，防止冲突
+              大于等于0 = 动作的类型，小于零为参数的类型
+    //act_roles: which roles can execute the action 不用，cms_permissions 中设置
+    //act_users: which users can execute the action
+    act_lib_name: the action lib, eg:"MeCMS.Category.Processor"
+    act_class_name: the class name of the action in the lib.
+    act_sub_name: the action subroute name in the lib.
+    act_order: 顺序号
+    
+  !+ cms_action_params
+    act_id
+    parm_id
+    parm_type:
+    parm_order: 顺序号
+    parm_name: the english name for explain.
+
+    假设有一个动作(test)有两个参数: c,d,那么他的动作过程为：
+
+    Sub ActionTest(c,d)
+    End Sub
+    Sub ActionTestView() '用来显示用户界面的无参数过程，结合模板处理类，不过这不应该是模板了，而是界面
+    End Sub
+
+    需要编写类 动作管理器 TMeActionMgr
+    RegisterAction(const ActionId: string, const ActionName: string; const ActionLibName: string; const ActionSubrouteName: string; const CatId: string; const ActionClassName: string = ''; );
+    RegisterActionParameter(const ActionId: string; const ParamId: string; const ParamName: string);
+    Public Function ActionExists(CatId, ActionId)
+    Public Function Actions(CatId, ActionId)
+    
+    Class TMeActionItem
+    Id
+    Name 
+    Params 'TMeList 
+    LibName 
+    ClassName 
+    SubrouteName
+
+    Public Function Execute
+    End Class
+    Class TMeActionParam
+    Id, Name, ParamType, Value
+    End Class
+
+现在我碰到的问题是加密后的内容不符合utf-8字符集因此编码和解码后结果不能还原。
+VBScript 的字符串格式为UTF-8。
+终于搞定了
++ util.string: 字符串处理函数库
+  字符串转换函数
++ util.math: 数学处理函数库
+
+2006-7-17
+如何防止cookies被伪造，一旦我在客户端存放后，就会认为用户是登录用户。因此如果该cookie被截获那么危险！！！
+必须设置安全Id,该id每次都应该不一样。解决方案：
+  将Id加密, 将到期时间插入到值，
+      vExpired = DateAdd("n", FTimeOut, Now())
+      aKey     = EnDeCryptXOR(aKey, FVisitKey)
+      aValue   = EnDeCryptXOR(aValue, FVisitKey + vExpired)
+        FCookies.Items(aKey)("V") = aValue
+        FCookies.Items(aKey)("D") = EnDeCryptXOR(vExpired, FVisitKey)
+        FCookies.Expires = vExpired
+
+2006-7-16
+基本完成 Session.lib.asp 
+并且可以存放class 了，另外不再使用系统的 Session 对象，可以节约资源
+
+2006-7-15
++ TMeLib  全面使用 Cache, 不过可以关闭。
+  使用 Cache 后的性能提升： 从原来的 23ms(偶尔出现31ms) 提升到 0ms(偶尔出现7ms)
+  测试内容为：Lib.Requre("Security.*")
+   将遍历 三个目录(Security\, Security\Hash, Security\Cipher)以及装载旗下的六个函数库文件(Cookies.lib.asp, Session.lib.asp, Cipher.lib.asp, Hash.lib.asp, Hash\MD5.lib.asp, Cipher\RC4.lib.asp)
+
+2006-7-14
+  ASP.Net 不支持默认属性，并且程序调用参数必须有括号。如果过程只有一个参数，那么可以加括号！
+  Set xx = New Object, Set 被取消，没有了。这个我就没有办法了！
+
+2006-7-13
+~ 发现使用 <Script> 标记可以使用 Unicode 文本，但是如果使用<%%> 就只能使用Ansi文本！
+  在<Script> 标记中的执行语句总是后于<%%>语句:
+  <code>
+  <SCRIPT Runat="Server" Language="VBScript">
+  response.write " Hello SCRIPT"
+  </SCRIPT>
+  <% Response.write "Hello %"
+  %>
+  </code>
+  显示结果： "Hello % Hello SCRIPT"
++ MeAll.asp MeASP系统的总的包含文件。
++ MeCMSAll.asp MeCMS系统的总的包含文件。
+//+ MeCMSConsts.asp MeCMS系统的常量以及全局变量定义。采用了APP 类，所以用不着了。
++ MeCMS/App.lib.asp the TMeCMSApp class
++ MeCMS/Security/UserMgr.lib.asp
+!+ MeCMS/Security/RoleMgr.lib.asp
+!+ MeCMS/Security/Permissions.lib.asp
++ MeCMS.asp 单一页面，系统主项目文件 相当于 main.dpr
+
+ASP Session 一点都不好用，不能保存内建对象，只使用 Cookies 进行存放。
+其实如果他能保存内建对象那么我也能忍了！但是！！
+
+还是编写自己的方式 TMeSession,来代替 Session, 我设想的 TMeSession 可以根据客户端是否支持Cookies 自动切换，不过现目前只支持 Cookies.
++ Security/Session.lib.asp
+
+  为了能够支持保存内建对象我不得不 对想要保存到 Session 中的对象作一些规范：
+  该对象必须有 
+    Public ClassName: string;
+    Public Function GetPropertyNames: string; //属性之间用逗号分隔
+  这样实际上我是将它转换成属性存放在Cookies中，算了暂时就利用系统Session:
+  规定存放对象名称必须已冒号打头：  MeSeesion(":MeObj:TMeObj") 第二个冒号后为类名
+  Session(":MeObj") = 二维数组 Dim V(1, Count) (0: 存放属性名称) (1: 存放属性值)
+  注意： Cookies 不支持数组。
+  错误思想！！！俺使用 session 的目的是为了减少查询次数提高速度，如果用cookies那么存放到客户端去了！！
+  应该cache到Application，cookie只存id, 然后设置超时，超时就re-query.
+
+默认： meCMS.asp?a=Action&c=Cateory&id=id&p=PageNo
+参数说明
+  a  Action
+  c  Cateory
+  id id
+  p  pageNo if any
+
+关于 默认加密的做法：
+  目的： 自由更换加密的算法过程。
+  做法： 在目录 Security/Cipher/Default.lib.asp 中
+  设置 DefaultEncrypt and DefaultDecrypt 函数，然后更改默认算法，只需要更改这两个函数即可。
+  为了及时没有DefaultEncrypt 函数也不影响使用，我采用 Eval("DefaultEncrypt()") 的方式调用，这样就不会报告，函数不存在的错误。
+
+2006-7-12
+! 需要构建 TMeLanuageMgr 类类似于TMeLib, 首先从数据库找语言文件，如果找不到再在文件系统中找。
+不过我暂时只需要 English 的单用户版本！
+
+2006-7-11
+' the execute can only execute the VBScript!!!
+' 所以如果使用 js 那么就不能动态装入
+'这个建立全局可见的执行结果！！如果用 Execute 那么其可见度和执行处的可见度一样
+' 必须去掉 <Script> 行，是纯代码
+ExecuteGlobal(vStr)
+
+'这个可以Eval 函数返回函数或变量的值
+response.write "<Br/>"&Eval("vtest.Footer")
+
+在js中使用 eval(vStr) 函数进行动态执行！！
+
+2006-7-9
+执行严格的界面和代码分离，后台使用哪一种Ajax必须是可以独立的！不能放入核心！
+
+目录命名：
+/SYS/CODE/LIB/    /系统/代码/库
+/SYS/CODE/MACRO/   /系统/代码/宏
+
+决定还是要 cat_langauge 默认为 en
+
